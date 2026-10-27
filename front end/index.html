@@ -3,57 +3,430 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TCS Forecast Dashboard</title>
+  <meta name="theme-color" content="#f6f7f3">
+  <title>Smart Quant — Forecast Studio</title>
   <style>
-    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #17212b; background: #f3f6f8; }
-    body { max-width: 1000px; margin: 48px auto; padding: 0 20px; }
-    header { margin-bottom: 28px; } h1 { margin-bottom: 6px; } p { color: #647382; }
-    .controls { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; background: white; padding: 18px; border-radius: 12px; }
-    label { display: grid; gap: 6px; color: #52616f; font-size: 14px; }
-    select, button { height: 40px; border: 1px solid #ccd5dc; border-radius: 7px; padding: 0 12px; background: white; font: inherit; }
-    button { background: #176b57; border-color: #176b57; color: white; cursor: pointer; } button:disabled { opacity: .6; cursor: wait; }
-    #status { min-height: 24px; margin: 16px 0; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-    .card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 2px 8px #182d3c0d; }
-    .card h2 { font-size: 17px; margin: 0 0 16px; text-transform: capitalize; }
-    .value { font-size: 25px; font-weight: 650; } .detail { color: #647382; margin-top: 8px; font-size: 14px; }
-    .error { color: #a33131; overflow-wrap: anywhere; }
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172820;
+      background: #f6f7f3;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --ink: #172820;
+      --muted: #76847c;
+      --line: #e5e9e2;
+      --paper: #fff;
+      --canvas: #f6f7f3;
+      --green: #1f674f;
+      --green-dark: #174b3c;
+      --mint: #eaf4ee;
+      --orange: #d78745;
+      --red: #b75b55;
+      --shadow: 0 18px 48px rgba(27, 44, 34, .07);
+    }
+    * { box-sizing: border-box; }
+    body { min-width: 320px; margin: 0; background: var(--canvas); }
+    button, select { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, select:focus-visible { outline: 3px solid #99c8ad; outline-offset: 3px; }
+    .app-shell { max-width: 1320px; margin: 0 auto; padding: 30px clamp(16px, 4vw, 54px) 56px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 42px; }
+    .brand { display: flex; gap: 11px; align-items: center; font-size: 14px; font-weight: 750; letter-spacing: -.02em; }
+    .brand-mark { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 11px; color: white; background: var(--green); font-size: 13px; }
+    .top-meta { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 12px; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #4da477; box-shadow: 0 0 0 4px #e4f1e8; }
+    .hero { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 28px; }
+    .eyebrow { margin: 0 0 9px; color: var(--green); font-size: 11px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { max-width: 720px; margin: 0; font-size: clamp(32px, 5vw, 56px); line-height: 1.04; font-weight: 650; letter-spacing: -.055em; }
+    .hero-copy { margin: 13px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+    .ticker-pill { display: inline-flex; align-items: center; gap: 8px; align-self: center; padding: 10px 13px; border: 1px solid var(--line); border-radius: 999px; color: #506157; background: rgba(255,255,255,.65); font-size: 12px; font-weight: 650; white-space: nowrap; }
+    .ticker-pill strong { color: var(--ink); font-size: 13px; }
+    .panel { border: 1px solid var(--line); border-radius: 20px; background: var(--paper); box-shadow: var(--shadow); }
+    .control-panel { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 24px; align-items: end; padding: clamp(18px, 3vw, 28px); }
+    .control-label { display: block; margin: 0 0 11px; color: #67776d; font-size: 11px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+    .horizons { display: flex; flex-wrap: wrap; gap: 8px; }
+    .horizon-button { min-width: 64px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 10px; background: white; color: #5d6b62; font-size: 13px; font-weight: 650; cursor: pointer; transition: .16s ease; }
+    .horizon-button:hover { border-color: #bad1c0; background: #f7faf7; }
+    .horizon-button[aria-pressed="true"] { border-color: var(--green); background: var(--green); color: white; box-shadow: 0 5px 12px #1f674f24; }
+    .control-actions { display: flex; align-items: end; gap: 10px; }
+    .model-select-wrap { min-width: 150px; }
+    .model-select { width: 100%; height: 42px; padding: 0 34px 0 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: #fff; }
+    .primary-button, .secondary-button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 9px; padding: 0 16px; border: 0; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: .16s ease; }
+    .primary-button { color: white; background: var(--green); box-shadow: 0 6px 14px #1f674f24; }
+    .primary-button:hover:not(:disabled) { background: var(--green-dark); transform: translateY(-1px); }
+    .primary-button:disabled { opacity: .65; cursor: wait; }
+    .secondary-button { border: 1px solid var(--line); background: white; color: #617168; }
+    .secondary-button:hover { background: #f7f9f6; }
+    .button-icon { font-size: 17px; line-height: 1; }
+    .overview { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center; margin: 18px 0 34px; padding: 20px 24px; border-radius: 16px; background: #edf3ed; }
+    .overview-label { margin: 0 0 5px; color: #6d7e72; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .overview-value { margin: 0; color: var(--ink); font-size: 26px; font-weight: 650; letter-spacing: -.04em; }
+    .overview-caption { margin: 5px 0 0; color: #79867d; font-size: 12px; }
+    .overview-date { text-align: right; color: #6d7e72; font-size: 12px; line-height: 1.6; }
+    .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin: 0 0 15px; }
+    .section-heading h2 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -.03em; }
+    .section-heading p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .status-line { min-height: 22px; margin: 0 0 14px; color: var(--muted); font-size: 13px; }
+    .status-line[data-tone="error"] { color: var(--red); }
+    .status-line[data-tone="success"] { color: var(--green); }
+    .result-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .result-card { min-width: 0; padding: 21px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); box-shadow: 0 8px 22px rgba(27,44,34,.035); animation: arrive .28s ease both; }
+    .result-card[data-type="volatility"] { border-top: 3px solid var(--orange); }
+    .result-card[data-type="price"] { border-top: 3px solid #71a889; }
+    .card-top { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+    .model-identity { display: flex; gap: 11px; align-items: center; }
+    .model-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; color: var(--green); background: var(--mint); font-size: 12px; font-weight: 800; }
+    [data-type="volatility"] .model-icon { color: #a25f28; background: #fff1e2; }
+    .model-name { margin: 0; font-size: 15px; font-weight: 720; }
+    .model-kind { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .horizon-tag { padding: 6px 9px; border-radius: 999px; color: #63736a; background: #f2f4f0; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .forecast-value { margin: 24px 0 3px; font-size: clamp(27px, 3.4vw, 36px); font-weight: 650; letter-spacing: -.055em; overflow-wrap: anywhere; }
+    .forecast-subtitle { margin: 0; color: #77857b; font-size: 12px; }
+    .return-line { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-top: 21px; padding-top: 14px; border-top: 1px solid #edf0eb; color: #6d7b72; font-size: 11px; }
+    .return-value { color: var(--green); font-weight: 750; font-size: 12px; }
+    .return-value.negative { color: var(--red); }
+    .range-track { position: relative; height: 8px; margin: 14px 0 5px; border-radius: 999px; background: linear-gradient(90deg, #efdbd7, #edf0eb 50%, #dceee2); }
+    .range-track::before { position: absolute; top: -4px; left: 50%; width: 2px; height: 16px; border-radius: 2px; background: #92a198; content: ""; }
+    .range-fill { position: absolute; top: 0; height: 8px; border-radius: 999px; background: var(--green); }
+    .range-fill.negative { background: var(--red); }
+    .range-labels { display: flex; justify-content: space-between; color: #98a39c; font-size: 10px; }
+    .vol-meter { height: 8px; overflow: hidden; margin: 14px 0 5px; border-radius: 999px; background: #f5e9dc; }
+    .vol-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #edc28f, #d78745); transition: width .5s ease; }
+    .card-bottom { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-top: 18px; color: #8b978f; font-size: 10px; }
+    .details-button { padding: 4px 0; border: 0; color: var(--green); background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .details-button:hover { text-decoration: underline; }
+    .details-panel { margin-top: 12px; padding: 12px; border-radius: 10px; background: #f7f8f5; }
+    .detail-row { display: flex; justify-content: space-between; gap: 16px; padding: 5px 0; color: #69776e; font-size: 11px; }
+    .detail-row span:last-child { color: var(--ink); text-align: right; overflow-wrap: anywhere; }
+    .error-card { border-top-color: var(--red) !important; }
+    .error-card .model-icon { color: var(--red); background: #f9e9e7; }
+    .error-message { margin: 20px 0 2px; color: #a2504c; font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
+    .empty-state { grid-column: 1/-1; padding: 42px 20px; border: 1px dashed #cbd5ca; border-radius: 16px; color: #77857b; text-align: center; }
+    .empty-mark { display: grid; width: 44px; height: 44px; place-items: center; margin: 0 auto 13px; border-radius: 14px; color: var(--green); background: var(--mint); font-size: 20px; }
+    .empty-state strong { display: block; margin-bottom: 6px; color: var(--ink); font-size: 14px; }
+    .empty-state p { margin: 0; font-size: 12px; }
+    .skeleton { min-height: 225px; background: linear-gradient(100deg, #fff 20%, #f3f5f1 40%, #fff 60%); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+    .history-section { margin-top: 34px; }
+    .history-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .history-item { display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; color: #69776e; background: white; font-size: 11px; cursor: pointer; }
+    .history-item:hover { border-color: #bad1c0; color: var(--green); }
+    .history-empty { color: #95a097; font-size: 12px; }
+    .footer-note { margin-top: 42px; padding-top: 18px; border-top: 1px solid var(--line); color: #87948b; font-size: 11px; line-height: 1.6; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @keyframes arrive { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+    @keyframes shimmer { to { background-position-x: -200%; } }
+    @media (max-width: 760px) {
+      .app-shell { padding-top: 20px; }
+      .topbar { margin-bottom: 30px; }
+      .hero { align-items: start; flex-direction: column; gap: 15px; }
+      .ticker-pill { align-self: start; }
+      .control-panel { grid-template-columns: 1fr; gap: 20px; }
+      .control-actions { display: grid; grid-template-columns: minmax(0,1fr) auto; }
+      .model-select-wrap { min-width: 0; }
+      .overview { padding: 17px; }
+    }
+    @media (max-width: 560px) {
+      .result-grid { grid-template-columns: 1fr; }
+      .overview { grid-template-columns: 1fr; gap: 10px; }
+      .overview-date { text-align: left; }
+      .control-actions { grid-template-columns: 1fr; }
+      .control-actions > * { width: 100%; }
+      .horizon-button { flex: 1; min-width: 48px; padding-inline: 7px; }
+      .result-card { padding: 18px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
   </style>
 </head>
 <body>
-  <header><h1>TCS Forecast Dashboard</h1><p>Daily forecasts from your existing ARIMA, XGBoost, LSTM, and GARCH models.</p></header>
-  <section class="controls" aria-label="Forecast controls">
-    <label>Model<select id="model"><option value="all">All models</option><option value="arima">ARIMA</option><option value="xgboost">XGBoost</option><option value="lstm">LSTM</option><option value="garch">GARCH volatility</option></select></label>
-    <label>Horizon<select id="horizon"><option value="1">1 trading day</option><option value="5">5 trading days</option><option value="21">21 trading days</option><option value="30">30 trading days</option><option value="45">45 trading days</option></select></label>
-    <button id="run">Generate forecast</button>
-  </section>
-  <div id="status" role="status"></div>
-  <section id="results" class="grid" aria-live="polite"></section>
+  <div class="app-shell">
+    <nav class="topbar" aria-label="Dashboard header">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">SQ</span><span>SMART QUANT</span></div>
+      <div class="top-meta"><span class="live-dot" aria-hidden="true"></span><span>Research workspace</span></div>
+    </nav>
+
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Forecast studio · India equities</p>
+        <h1>See the next move<br>from every angle.</h1>
+        <p class="hero-copy">Compare price forecasts and volatility estimates for TCS.NS in one place.</p>
+      </div>
+      <div class="ticker-pill"><strong>TCS.NS</strong><span>·</span><span>NSE</span></div>
+    </header>
+
+    <section class="panel control-panel" aria-label="Forecast settings">
+      <div>
+        <span class="control-label">Forecast horizon</span>
+        <div class="horizons" role="group" aria-label="Choose trading day horizon">
+          <button class="horizon-button" type="button" data-horizon="1" aria-pressed="false">1D</button>
+          <button class="horizon-button" type="button" data-horizon="5" aria-pressed="true">5D</button>
+          <button class="horizon-button" type="button" data-horizon="21" aria-pressed="false">21D</button>
+          <button class="horizon-button" type="button" data-horizon="30" aria-pressed="false">30D</button>
+          <button class="horizon-button" type="button" data-horizon="45" aria-pressed="false">45D</button>
+        </div>
+      </div>
+      <div class="control-actions">
+        <label class="model-select-wrap"><span class="control-label">Models</span>
+          <select id="model" class="model-select" aria-label="Choose model">
+            <option value="all">All models</option>
+            <option value="arima">ARIMA</option>
+            <option value="xgboost">XGBoost</option>
+            <option value="lstm">LSTM</option>
+            <option value="garch">GARCH volatility</option>
+          </select>
+        </label>
+        <button id="run" class="primary-button" type="button"><span class="button-icon" aria-hidden="true">↗</span><span>Run forecast</span></button>
+        <button id="cancel" class="secondary-button" type="button" hidden>Cancel</button>
+      </div>
+    </section>
+
+    <section id="overview" class="overview" aria-label="Latest market data" hidden>
+      <div><p class="overview-label">Latest close</p><p id="current-close" class="overview-value">—</p><p class="overview-caption">From the shared daily CSV</p></div>
+      <div class="overview-date"><div>Data as of <strong id="as-of">—</strong></div><div>Forecast horizon <strong id="selected-horizon">5 trading days</strong></div></div>
+    </section>
+
+    <main>
+      <div class="section-heading"><div><h2>Model outlook</h2><p>Price targets and risk estimates are shown in their own units.</p></div></div>
+      <div id="status" class="status-line" role="status" aria-live="polite">Choose a horizon and run a forecast to get started.</div>
+      <section id="results" class="result-grid" aria-live="polite" aria-label="Forecast results">
+        <div class="empty-state"><span class="empty-mark" aria-hidden="true">⌁</span><strong>Your forecasts will appear here</strong><p>Run one model or compare all four at the selected horizon.</p></div>
+      </section>
+    </main>
+
+    <section class="history-section" aria-label="Recent forecast requests">
+      <div class="section-heading"><div><h2>Recent runs</h2><p>Stored in this page until it is refreshed.</p></div><button id="clear-history" class="secondary-button" type="button" hidden>Clear</button></div>
+      <div id="history" class="history-list"><span class="history-empty">No forecasts yet.</span></div>
+    </section>
+
+    <footer class="footer-note">Forecasts are research estimates based on historical data and do not guarantee future performance. GARCH estimates cumulative volatility; it is not a price target or a trading recommendation.</footer>
+  </div>
+
   <script>
-    const button = document.querySelector('#run');
-    const status = document.querySelector('#status');
+    const modelSelect = document.querySelector('#model');
+    const runButton = document.querySelector('#run');
+    const cancelButton = document.querySelector('#cancel');
+    const statusLine = document.querySelector('#status');
     const results = document.querySelector('#results');
-    const money = value => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(value);
-    function card(name, item) {
-      if (item.error) return `<article class="card"><h2>${name}</h2><div class="error">${item.error}</div></article>`;
-      const isVol = item.forecast_type === 'volatility';
-      const value = isVol ? `${Number(item.forecast_value).toFixed(3)} ${item.unit}` : money(item.forecast_close);
-      const change = isVol ? 'Cumulative volatility forecast' : `${Number(item.forecast_return_pct).toFixed(2)}% expected return`;
-      return `<article class="card"><h2>${item.model}</h2><div class="value">${value}</div><div class="detail">${change}</div><div class="detail">As of ${item.as_of_date} · ${item.horizon_trading_days} trading day(s)</div></article>`;
+    const historyList = document.querySelector('#history');
+    const overview = document.querySelector('#overview');
+    const horizonLabel = document.querySelector('#selected-horizon');
+    const horizonButtons = [...document.querySelectorAll('[data-horizon]')];
+    const clearHistoryButton = document.querySelector('#clear-history');
+    let selectedHorizon = 5;
+    let activeController = null;
+    let recentRuns = [];
+
+    const modelMeta = {
+      arima: { label: 'ARIMA', mark: 'A', kind: 'Time-series price model' },
+      xgboost: { label: 'XGBoost', mark: 'X', kind: 'Gradient-boosted price model' },
+      lstm: { label: 'LSTM', mark: 'L', kind: 'Neural-network price model' },
+      garch: { label: 'GARCH', mark: 'G', kind: 'Conditional volatility model' }
+    };
+    const money = value => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(Number(value));
+    const number = (value, digits = 2) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: digits }).format(Number(value));
+    const titleCase = value => String(value || '').replaceAll('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+
+    function setStatus(message, tone = '') {
+      statusLine.textContent = message;
+      statusLine.dataset.tone = tone;
     }
-    button.addEventListener('click', async () => {
-      button.disabled = true; results.replaceChildren(); status.textContent = 'Running model forecast(s)…';
+
+    function makeElement(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text !== undefined) element.textContent = text;
+      return element;
+    }
+
+    function makeEmptyState(title, message) {
+      const state = makeElement('div', 'empty-state');
+      state.append(makeElement('span', 'empty-mark', '⌁'), makeElement('strong', '', title), makeElement('p', '', message));
+      results.replaceChildren(state);
+    }
+
+    function setBusy(busy) {
+      runButton.disabled = busy;
+      runButton.querySelector('span:last-child').textContent = busy ? 'Running…' : 'Run forecast';
+      cancelButton.hidden = !busy;
+    }
+
+    function renderHistory() {
+      historyList.replaceChildren();
+      clearHistoryButton.hidden = recentRuns.length === 0;
+      if (!recentRuns.length) {
+        historyList.append(makeElement('span', 'history-empty', 'No forecasts yet.'));
+        return;
+      }
+      recentRuns.forEach((run, index) => {
+        const button = makeElement('button', 'history-item');
+        button.type = 'button';
+        button.append(makeElement('span', '', '↺'), document.createTextNode(`${run.modelLabel} · ${run.horizon}D`));
+        button.title = `Show ${run.modelLabel} forecast for ${run.horizon} trading days`;
+        button.addEventListener('click', () => showRun(run, `Showing saved ${run.modelLabel} run.`));
+        historyList.append(button);
+      });
+    }
+
+    function addDetailRows(container, item) {
+      const metadata = item.metadata || {};
+      const pairs = Object.entries(metadata);
+      if (!pairs.length) {
+        container.append(makeElement('div', 'detail-row', 'No extra model details available.'));
+        return;
+      }
+      pairs.forEach(([key, value]) => {
+        const row = makeElement('div', 'detail-row');
+        row.append(makeElement('span', '', titleCase(key)), makeElement('span', '', typeof value === 'object' ? JSON.stringify(value) : String(value)));
+        container.append(row);
+      });
+    }
+
+    function addPriceRange(card, item) {
+      const section = makeElement('div');
+      const value = Number(item.forecast_return_pct) || 0;
+      const clamped = Math.max(-48, Math.min(48, value));
+      const width = Math.abs(clamped) / 2;
+      const fill = makeElement('div', `range-fill${value < 0 ? ' negative' : ''}`);
+      fill.style.width = `${width}%`;
+      fill.style.left = value < 0 ? `${50 - width}%` : '50%';
+      const track = makeElement('div', 'range-track');
+      track.setAttribute('aria-label', `Forecast return ${number(value)} percent`);
+      track.append(fill);
+      const labels = makeElement('div', 'range-labels');
+      labels.append(makeElement('span', '', 'Lower'), makeElement('span', '', 'Current price'), makeElement('span', '', 'Higher'));
+      section.append(track, labels);
+      card.append(section);
+    }
+
+    function renderCard(name, item, index) {
+      const meta = modelMeta[name] || { label: titleCase(name), mark: '?', kind: 'Forecast model' };
+      const failed = Boolean(item.error);
+      const volatility = item.forecast_type === 'volatility';
+      const card = makeElement('article', `result-card${failed ? ' error-card' : ''}`);
+      if (!failed) card.dataset.type = volatility ? 'volatility' : 'price';
+      card.style.animationDelay = `${Math.min(index * 55, 220)}ms`;
+
+      const top = makeElement('div', 'card-top');
+      const identity = makeElement('div', 'model-identity');
+      identity.append(makeElement('span', 'model-icon', meta.mark));
+      const labels = makeElement('div');
+      labels.append(makeElement('h3', 'model-name', meta.label), makeElement('p', 'model-kind', meta.kind));
+      identity.append(labels);
+      top.append(identity, makeElement('span', 'horizon-tag', `${item.horizon_trading_days || selectedHorizon} TRADING DAYS`));
+      card.append(top);
+
+      if (failed) {
+        card.append(makeElement('p', 'error-message', item.error));
+        return card;
+      }
+
+      const value = volatility ? `${number(item.forecast_value, 3)} ${item.unit}` : money(item.forecast_close);
+      const subtitle = volatility ? 'Expected cumulative volatility' : 'Projected adjusted close';
+      card.append(makeElement('p', 'forecast-value', value), makeElement('p', 'forecast-subtitle', subtitle));
+
+      if (volatility) {
+        const meter = makeElement('div', 'vol-meter');
+        const fill = makeElement('div', 'vol-fill');
+        fill.style.width = `${Math.max(3, Math.min(100, Number(item.forecast_value) / 8 * 100))}%`;
+        meter.append(fill);
+        card.append(meter);
+      } else {
+        addPriceRange(card, item);
+      }
+
+      const line = makeElement('div', 'return-line');
+      const leftText = volatility ? 'As-of close' : 'Expected price change';
+      const rightText = volatility ? money(item.current_close) : `${Number(item.forecast_return_pct) >= 0 ? '+' : ''}${number(item.forecast_return_pct)}%`;
+      const right = makeElement('span', `return-value${Number(item.forecast_return_pct) < 0 ? ' negative' : ''}`, rightText);
+      line.append(makeElement('span', '', leftText), right);
+      card.append(line);
+
+      const bottom = makeElement('div', 'card-bottom');
+      bottom.append(makeElement('span', '', `Data date · ${item.as_of_date || '—'}`));
+      const detailsButton = makeElement('button', 'details-button', 'Model details +');
+      detailsButton.type = 'button';
+      detailsButton.setAttribute('aria-expanded', 'false');
+      const details = makeElement('div', 'details-panel');
+      details.hidden = true;
+      addDetailRows(details, item);
+      detailsButton.addEventListener('click', () => {
+        const open = details.hidden;
+        details.hidden = !open;
+        detailsButton.textContent = open ? 'Hide details −' : 'Model details +';
+        detailsButton.setAttribute('aria-expanded', String(open));
+      });
+      bottom.append(detailsButton);
+      card.append(bottom, details);
+      return card;
+    }
+
+    function showRun(run, message) {
+      results.replaceChildren(...run.entries.map(([name, item], index) => renderCard(name, item, index)));
+      const valid = run.entries.find(([, item]) => !item.error)?.[1];
+      if (valid) {
+        document.querySelector('#current-close').textContent = money(valid.current_close);
+        document.querySelector('#as-of').textContent = valid.as_of_date || '—';
+        horizonLabel.textContent = `${run.horizon} trading day${run.horizon === 1 ? '' : 's'}`;
+        overview.hidden = false;
+      }
+      setStatus(message, 'success');
+    }
+
+    function showLoading() {
+      results.replaceChildren();
+      const count = modelSelect.value === 'all' ? 4 : 1;
+      for (let i = 0; i < count; i++) results.append(makeElement('div', 'panel skeleton'));
+    }
+
+    async function runForecast() {
+      if (activeController) activeController.abort();
+      activeController = new AbortController();
+      const controller = activeController;
+      const model = modelSelect.value;
+      const horizon = selectedHorizon;
+      showLoading();
+      setBusy(true);
+      setStatus(`Running ${model === 'all' ? 'all four models' : modelMeta[model].label} for ${horizon} trading day${horizon === 1 ? '' : 's'}…`);
+      const timeout = setTimeout(() => controller.abort(), 240000);
       try {
-        const model = document.querySelector('#model').value;
-        const horizon = document.querySelector('#horizon').value;
-        const response = await fetch(`/api/forecast?model=${encodeURIComponent(model)}&horizon=${horizon}`);
+        const query = new URLSearchParams({ model, horizon: String(horizon) });
+        const response = await fetch(`/api/forecast?${query}`, { signal: controller.signal, headers: { Accept: 'application/json' } });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Forecast request failed');
-        const entries = data.results ? Object.entries(data.results) : [[data.model, data]];
-        results.innerHTML = entries.map(([name, item]) => card(name, item)).join('');
-        status.textContent = 'Forecast complete.';
-      } catch (error) { status.textContent = error.message; }
-      finally { button.disabled = false; }
+        if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
+        const entries = data.results ? Object.entries(data.results) : [[model === 'all' ? String(data.model || model).toLowerCase() : model, data]];
+        const run = { model, modelLabel: model === 'all' ? 'All models' : modelMeta[model].label, horizon, entries, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+        recentRuns = [run, ...recentRuns.filter(item => !(item.model === model && item.horizon === horizon))].slice(0, 5);
+        renderHistory();
+        const failed = entries.filter(([, item]) => item.error).length;
+        showRun(run, failed ? `Forecast finished with ${failed} model${failed === 1 ? '' : 's'} unavailable.` : `Forecasts ready · ${run.timestamp}`);
+        if (failed) statusLine.dataset.tone = 'error';
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          makeEmptyState('Forecast stopped', 'Run it again whenever you are ready.');
+          setStatus('Forecast cancelled or timed out.', 'error');
+        } else {
+          makeEmptyState('Could not load forecast', error.message || 'Check the server and try again.');
+          setStatus(error.message || 'Forecast request failed.', 'error');
+        }
+      } finally {
+        clearTimeout(timeout);
+        if (activeController === controller) activeController = null;
+        setBusy(false);
+      }
+    }
+
+    horizonButtons.forEach(button => button.addEventListener('click', () => {
+      selectedHorizon = Number(button.dataset.horizon);
+      horizonButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      horizonLabel.textContent = `${selectedHorizon} trading day${selectedHorizon === 1 ? '' : 's'}`;
+    }));
+    runButton.addEventListener('click', runForecast);
+    cancelButton.addEventListener('click', () => activeController?.abort());
+    clearHistoryButton.addEventListener('click', () => { recentRuns = []; renderHistory(); });
+    modelSelect.addEventListener('change', () => {
+      if (modelSelect.value !== 'all') setStatus(`${modelMeta[modelSelect.value].label} selected · choose a horizon and run forecast.`);
     });
   </script>
 </body>
