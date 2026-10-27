@@ -1,0 +1,14 @@
+{
+  "horizon": 21,
+  "test_start": "2025-10-17",
+  "selected_params": {
+    "n_estimators": 100,
+    "max_depth": 2,
+    "learning_rate": 0.05,
+    "min_child_weight": 60,
+    "subsample": 0.85,
+    "colsample_bytree": 0.7,
+    "reg_lambda": 20.0
+  },
+  "candidate_results_file": "hyperparameter_search_21d.csv"
+}

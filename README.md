@@ -1,76 +1,60 @@
-# Smart-Quant: TCS Multi-Model Forecasting Dashboard
+# Smart-Quant — Multi-Model Forecasting & Risk Analytics
 
-Smart-Quant analyzes financial market time series. This project combines existing ARIMA, XGBoost, and LSTM price forecasts with a separate GARCH volatility forecast for TCS.NS.
+Smart-Quant is a local Streamlit research dashboard for TCS.NS. It reads the shared auto-adjusted OHLCV cache, serves current-origin price forecasts from ARIMA, XGBoost, and LSTM, and keeps GARCH volatility analysis separate from price direction.
 
-## Project Goal
+## Run locally on Windows
 
-Explore and evaluate several approaches to price forecasting and volatility estimation using historical daily market data.
-
-## Current Features
-
-- Shared OHLCV preprocessing for `data/TCS.NS_daily.csv`
-- ARIMA, XGBoost, and LSTM price forecast interfaces
-- GARCH(1,1)-Student-t cumulative volatility forecast
-- Unified JSON response and local web dashboard
-- Walk-forward model evaluation outputs produced by the existing model scripts
-
-## Requirements
-
-- Python 3.12
-- The packages listed in `requirements.txt`
-- The included OHLCV CSV at `data/TCS.NS_daily.csv`
-
-Create an environment and install the dependencies:
+Use Python 3.12 (recommended for TensorFlow compatibility), then from the project root:
 
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+streamlit run main.py
 ```
 
-## Run locally
+The dashboard opens in the browser. The five pages are Overview, Forecasts, Model Performance, Volatility & Risk, and Diagnostics. Use the top-bar **Refresh data** control to update `data/TCS.NS_daily.csv`; the cache is replaced atomically only after downloaded data passes validation.
 
-From the project root:
+## Model and result sources
 
-```powershell
-python main.py
-```
+| Component | Active callable source | Saved evaluation/artifacts |
+|---|---|---|
+| ARIMA | `models/arima_model.py` specification, called through `src/forecasting.py` | `results/arima_v2/` |
+| XGBoost | `models/xgboost_model_v2.py` feature/training helpers | `results/xgboost_return_walkforward_v4/`; loads matching-date `.ubj` models, otherwise fits the selected fixed settings without rerunning the candidate search |
+| LSTM | `models/lstm_model_v2.py` existing training routine | `results/lstm_direct_walkforward_v2/`; evaluation weights are not saved, so latest-origin fit runs only when explicitly requested |
+| GARCH forecast | Active `models/garch_model_v2.py` specification | Latest saved risk evaluation is `results/garch_v4/`; its source script is in `models archived/` and is labelled as historical |
 
-Open <http://127.0.0.1:8000>. Choose a model and horizon (1, 5, 21, 30, or 45 trading days), then select **Generate forecast**. The API is also available at `/api/models` and `/api/forecast?model=all&horizon=5`.
+The ARIMA adapter reads the selected order from `results/arima_v2/metrics.csv`. XGBoost uses saved artifacts only when their run metadata matches the current cache date; otherwise the adapter fits with saved per-horizon parameters or the existing first candidate. LSTM and GARCH run only after an explicit forecast action. No historical backtest is rerun when navigating between pages.
 
-Forecasts are computed when requested. LSTM and XGBoost model fitting can take a while. GARCH returns a volatility forecast in cumulative return percentage points; the other models return a projected close in INR and the associated return percentage.
+Future target dates are left unset because the project does not include an NSE holiday calendar. Forecasts use one shared data origin and horizon; the chart marks endpoints at a session offset and does not draw future paths. Consensus is an experimental equal-weight average of successful price-model returns. It is not presented as a superior estimator.
 
-## Integration behavior
+## Dashboard pages
 
-- `src/data_loader.py` is the shared, validated OHLCV reader.
-- `src/forecasting.py` adapts the existing model code to a common result format.
-- ARIMA uses an order saved in `results/arima_v2/selected_orders.csv` if present; otherwise it uses ARIMA(1,1,1).
-- XGBoost uses the model's first declared parameter candidate. The integration does not run the historical candidate search.
-- LSTM uses the existing model architecture, lookback, seed ensemble, and calibration routine.
-- GARCH uses GARCH(1,1) with Student-t errors, matching the existing model specification.
+- **Overview:** adjusted close, daily/5/21-session returns, historical price, volume, rolling volatility, and drawdown.
+- **Forecasts:** ARIMA/XGBoost/LSTM comparison for 1, 5, 21, 30, or 45 sessions; status/errors, endpoint chart, disagreement, and experimental consensus.
+- **Model Performance:** saved walk-forward MAE/RMSE, directional accuracy, correlation where available, benchmark errors, actual/predicted values, and residual views.
+- **Volatility & Risk:** GARCH forecast and saved GARCH v4 benchmark evaluation; volatility remains in cumulative horizon return percentage points. Historical daily-return volatility is not annualized.
+- **Diagnostics:** data validation, code/package availability, saved files, model metadata, orders, and execution status.
 
-The integration layer does not change the existing model training or optimization configuration. Model outputs are estimates, not investment advice.
+Portfolio optimization, VaR/CVaR, broker execution, and annualized volatility are not implemented.
 
 ## Tests
-
-Run the lightweight integration checks with:
 
 ```powershell
 python -m unittest discover -s tests -v
 ```
 
-The test suite checks the CSV contract, result serialization, horizon/model validation, and the dashboard/API shell. A full model smoke test requires all model dependencies from `requirements.txt` and should be run in the same environment used for deployment.
+The lightweight suite checks the CSV contract, result schemas, forecast failure handling, saved-result readers, and dashboard source structure. Full model smoke tests require all packages in `requirements.txt`; LSTM and model-library behavior should be checked in the same Python environment used to run Streamlit.
 
-## GitHub and hosting
+## Data and research cautions
 
-The source repository is <https://github.com/ayushkm071/smart-quant>. GitHub stores the source; it does not run this Python API. For a live dashboard, use a Python web-service host that supports the `requirements.txt` dependencies, configure the start command as `python main.py` with `HOST=0.0.0.0`, and provide the CSV at `data/TCS.NS_daily.csv`. TensorFlow and model fitting require more memory and startup time than a static site, so confirm the host's resource limits before enabling public traffic.
+`Close` is treated as adjusted close, matching the project cache produced with Yahoo Finance `auto_adjust=True`. The UI shows the latest observation date and its calendar age; it does not describe the cached value as live. Forecasts and saved backtest metrics are research estimates, not investment advice. Overlapping multi-day evaluation targets are dependent.
 
-## Technologies
+## Repository and deployment
 
-Python, ARIMA, XGBoost, LSTM, GARCH, NumPy, pandas, scikit-learn, statsmodels, TensorFlow, and Matplotlib.
+Source repository: <https://github.com/ayushkm071/smart-quant>. GitHub hosts the source and curated evaluation artifacts, not the running Streamlit application. To make a live dashboard, deploy to a Python service that supports Streamlit, TensorFlow, XGBoost, statsmodels, and `arch`, and provide the CSV at the expected `data/TCS.NS_daily.csv` path.
 
-## Author
+## Project author
 
 Ayush Mishra
-

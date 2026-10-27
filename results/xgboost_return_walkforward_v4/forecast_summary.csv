@@ -1,0 +1,6 @@
+ticker,as_of_date,current_adjusted_close,horizon_trading_days,shrinkage_beta,xgb_predicted_return_pct,xgb_predicted_close,xgb_raw_predicted_return_pct,naive_predicted_close,momentum_trailing_return_pct,warning
+TCS.NS,2026-10-26,2534.39990234375,1,0.0,-0.0,2534.39990234375,-0.007283543093994371,2534.39990234375,0.17390918354742713,Research estimate only; not a trading recommendation.
+TCS.NS,2026-10-26,2534.39990234375,5,0.0,-0.0,2534.39990234375,-0.04004504968367906,2534.39990234375,2.8154118597870204,Research estimate only; not a trading recommendation.
+TCS.NS,2026-10-26,2534.39990234375,21,0.0,-0.0,2534.39990234375,-0.2802250869053058,2534.39990234375,21.931132045110125,Research estimate only; not a trading recommendation.
+TCS.NS,2026-10-26,2534.39990234375,30,0.0,-0.0,2534.39990234375,0.6352727661044666,2534.39990234375,15.392794957484002,Research estimate only; not a trading recommendation.
+TCS.NS,2026-10-26,2534.39990234375,45,0.0,0.0,2534.39990234375,3.4725570455444665,2534.39990234375,11.30942768979235,Research estimate only; not a trading recommendation.

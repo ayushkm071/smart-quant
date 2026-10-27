@@ -7,9 +7,59 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-# Forecast outputs and trained model artifacts are reproducible, and can be large
-/results/
+# Keep only the evaluation tables and model artifacts consumed by the dashboard
 /results archived/
+/results/*
+!/results/arima_v2/
+!/results/xgboost_return_walkforward_v4/
+!/results/lstm_direct_walkforward_v2/
+!/results/garch_v4/
+/results/arima_v2/*
+!/results/arima_v2/metrics.csv
+!/results/arima_v2/predictions.csv
+!/results/arima_v2/residual_diagnostics.csv
+!/results/arima_v2/selected_orders.csv
+!/results/arima_v2/order_selection_grid_by_horizon.csv
+!/results/arima_v2/validation_predictions.csv
+!/results/arima_v2/hac_paired_error_tests.csv
+/results/xgboost_return_walkforward_v4/*
+!/results/xgboost_return_walkforward_v4/metrics.csv
+!/results/xgboost_return_walkforward_v4/all_test_predictions.csv
+!/results/xgboost_return_walkforward_v4/forecast_summary.csv
+!/results/xgboost_return_walkforward_v4/run_metadata.json
+!/results/xgboost_return_walkforward_v4/xgboost_1d.ubj
+!/results/xgboost_return_walkforward_v4/xgboost_5d.ubj
+!/results/xgboost_return_walkforward_v4/xgboost_21d.ubj
+!/results/xgboost_return_walkforward_v4/xgboost_30d.ubj
+!/results/xgboost_return_walkforward_v4/xgboost_45d.ubj
+!/results/xgboost_return_walkforward_v4/xgboost_1d.json
+!/results/xgboost_return_walkforward_v4/xgboost_5d.json
+!/results/xgboost_return_walkforward_v4/xgboost_21d.json
+!/results/xgboost_return_walkforward_v4/xgboost_30d.json
+!/results/xgboost_return_walkforward_v4/xgboost_45d.json
+!/results/xgboost_return_walkforward_v4/selected_params_1d.json
+!/results/xgboost_return_walkforward_v4/selected_params_5d.json
+!/results/xgboost_return_walkforward_v4/selected_params_21d.json
+!/results/xgboost_return_walkforward_v4/selected_params_30d.json
+!/results/xgboost_return_walkforward_v4/selected_params_45d.json
+/results/lstm_direct_walkforward_v2/*
+!/results/lstm_direct_walkforward_v2/metrics.csv
+!/results/lstm_direct_walkforward_v2/predictions_1d.csv
+!/results/lstm_direct_walkforward_v2/predictions_5d.csv
+!/results/lstm_direct_walkforward_v2/predictions_21d.csv
+!/results/lstm_direct_walkforward_v2/predictions_30d.csv
+!/results/lstm_direct_walkforward_v2/predictions_45d.csv
+!/results/lstm_direct_walkforward_v2/lstm_1d_metadata.json
+!/results/lstm_direct_walkforward_v2/lstm_5d_metadata.json
+!/results/lstm_direct_walkforward_v2/lstm_21d_metadata.json
+!/results/lstm_direct_walkforward_v2/lstm_30d_metadata.json
+!/results/lstm_direct_walkforward_v2/lstm_45d_metadata.json
+/results/garch_v4/*
+!/results/garch_v4/metrics.csv
+!/results/garch_v4/predictions.csv
+!/results/garch_v4/forecast_comparison_tests.csv
+!/results/garch_v4/parameter_inference.csv
+!/results/garch_v4/residual_diagnostics.csv
 
 # Unrelated local coursework and reference material in the working folder
 /Python Programing/
