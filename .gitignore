@@ -1,0 +1,25 @@
+# Python environments and generated files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Forecast outputs and trained model artifacts are reproducible, and can be large
+/results/
+/results archived/
+
+# Unrelated local coursework and reference material in the working folder
+/Python Programing/
+/git-cheat-sheet-education.pdf
+/THE-INTELLIGENT-INVESTOR.pdf
+/TimeSeries_ARIMA_Roadmap.pdf
+
+# Local secrets and editor state
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/

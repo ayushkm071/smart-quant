@@ -1,0 +1,11 @@
+# Runtime: Python 3.12
+numpy>=1.26
+pandas>=2.1
+scipy>=1.11
+matplotlib>=3.8
+scikit-learn>=1.4
+statsmodels>=0.14
+xgboost>=2.0
+tensorflow>=2.16
+arch>=6.3
+yfinance>=0.2

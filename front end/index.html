@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TCS Forecast Dashboard</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #17212b; background: #f3f6f8; }
+    body { max-width: 1000px; margin: 48px auto; padding: 0 20px; }
+    header { margin-bottom: 28px; } h1 { margin-bottom: 6px; } p { color: #647382; }
+    .controls { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; background: white; padding: 18px; border-radius: 12px; }
+    label { display: grid; gap: 6px; color: #52616f; font-size: 14px; }
+    select, button { height: 40px; border: 1px solid #ccd5dc; border-radius: 7px; padding: 0 12px; background: white; font: inherit; }
+    button { background: #176b57; border-color: #176b57; color: white; cursor: pointer; } button:disabled { opacity: .6; cursor: wait; }
+    #status { min-height: 24px; margin: 16px 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 2px 8px #182d3c0d; }
+    .card h2 { font-size: 17px; margin: 0 0 16px; text-transform: capitalize; }
+    .value { font-size: 25px; font-weight: 650; } .detail { color: #647382; margin-top: 8px; font-size: 14px; }
+    .error { color: #a33131; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <header><h1>TCS Forecast Dashboard</h1><p>Daily forecasts from your existing ARIMA, XGBoost, LSTM, and GARCH models.</p></header>
+  <section class="controls" aria-label="Forecast controls">
+    <label>Model<select id="model"><option value="all">All models</option><option value="arima">ARIMA</option><option value="xgboost">XGBoost</option><option value="lstm">LSTM</option><option value="garch">GARCH volatility</option></select></label>
+    <label>Horizon<select id="horizon"><option value="1">1 trading day</option><option value="5">5 trading days</option><option value="21">21 trading days</option><option value="30">30 trading days</option><option value="45">45 trading days</option></select></label>
+    <button id="run">Generate forecast</button>
+  </section>
+  <div id="status" role="status"></div>
+  <section id="results" class="grid" aria-live="polite"></section>
+  <script>
+    const button = document.querySelector('#run');
+    const status = document.querySelector('#status');
+    const results = document.querySelector('#results');
+    const money = value => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(value);
+    function card(name, item) {
+      if (item.error) return `<article class="card"><h2>${name}</h2><div class="error">${item.error}</div></article>`;
+      const isVol = item.forecast_type === 'volatility';
+      const value = isVol ? `${Number(item.forecast_value).toFixed(3)} ${item.unit}` : money(item.forecast_close);
+      const change = isVol ? 'Cumulative volatility forecast' : `${Number(item.forecast_return_pct).toFixed(2)}% expected return`;
+      return `<article class="card"><h2>${item.model}</h2><div class="value">${value}</div><div class="detail">${change}</div><div class="detail">As of ${item.as_of_date} · ${item.horizon_trading_days} trading day(s)</div></article>`;
+    }
+    button.addEventListener('click', async () => {
+      button.disabled = true; results.replaceChildren(); status.textContent = 'Running model forecast(s)…';
+      try {
+        const model = document.querySelector('#model').value;
+        const horizon = document.querySelector('#horizon').value;
+        const response = await fetch(`/api/forecast?model=${encodeURIComponent(model)}&horizon=${horizon}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Forecast request failed');
+        const entries = data.results ? Object.entries(data.results) : [[data.model, data]];
+        results.innerHTML = entries.map(([name, item]) => card(name, item)).join('');
+        status.textContent = 'Forecast complete.';
+      } catch (error) { status.textContent = error.message; }
+      finally { button.disabled = false; }
+    });
+  </script>
+</body>
+</html>
