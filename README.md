@@ -6,6 +6,8 @@ Smart-Quant is a local Streamlit research dashboard for TCS.NS. It reads the sha
 
 Use Python 3.12 (recommended for TensorFlow compatibility). For everyday use, double-click `run_dashboard.bat` in the project folder. On first run it creates `.venv` and installs `requirements.txt`; later runs reuse that environment and open the local Streamlit page. Keep the terminal window open while using the dashboard. Close it (or press Ctrl+C) to stop the local server.
 
+If the first dependency download times out, press a key to close the error window and run `run_dashboard.bat` again. The launcher retries package downloads with a longer timeout; packages that already installed are reused.
+
 You can also start it manually from PowerShell:
 
 ```powershell

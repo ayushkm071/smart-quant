@@ -10,9 +10,9 @@ if not exist ".venv\Scripts\python.exe" (
 
 if not exist ".venv\.smart_quant_deps_installed" (
     echo Installing Smart-Quant dependencies. This is only needed on first run...
-    ".venv\Scripts\python.exe" -m pip install --upgrade pip
+    ".venv\Scripts\python.exe" -m pip install --upgrade pip --timeout 120 --retries 10
     if errorlevel 1 goto install_error
-    ".venv\Scripts\python.exe" -m pip install -r requirements.txt
+    ".venv\Scripts\python.exe" -m pip install -r requirements.txt --timeout 120 --retries 10
     if errorlevel 1 goto install_error
     type nul > ".venv\.smart_quant_deps_installed"
 )
