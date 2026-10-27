@@ -1,6 +1,18 @@
-# TCS Multi-Model Forecasting Dashboard
+# Smart-Quant: TCS Multi-Model Forecasting Dashboard
 
-A local Python application that reads `data/TCS.NS_daily.csv` and presents forecasts from the project's existing ARIMA, XGBoost, and LSTM price models plus a separate GARCH volatility model.
+Smart-Quant analyzes financial market time series. This project combines existing ARIMA, XGBoost, and LSTM price forecasts with a separate GARCH volatility forecast for TCS.NS.
+
+## Project Goal
+
+Explore and evaluate several approaches to price forecasting and volatility estimation using historical daily market data.
+
+## Current Features
+
+- Shared OHLCV preprocessing for `data/TCS.NS_daily.csv`
+- ARIMA, XGBoost, and LSTM price forecast interfaces
+- GARCH(1,1)-Student-t cumulative volatility forecast
+- Unified JSON response and local web dashboard
+- Walk-forward model evaluation outputs produced by the existing model scripts
 
 ## Requirements
 
@@ -50,11 +62,15 @@ python -m unittest discover -s tests -v
 
 The test suite checks the CSV contract, result serialization, horizon/model validation, and the dashboard/API shell. A full model smoke test requires all model dependencies from `requirements.txt` and should be run in the same environment used for deployment.
 
-## Deploy to GitHub
+## GitHub and hosting
 
-1. Create an empty GitHub repository and choose private or public visibility.
-2. Connect the GitHub integration in Codex (or install and authenticate GitHub CLI).
-3. Add the new repository as `origin`, commit the intended project files, and push the `main` branch.
-4. Keep the repository private if you do not want the data CSV or project source to be public. Review the staged files before publishing.
+The source repository is <https://github.com/ayushkm071/smart-quant>. GitHub stores the source; it does not run this Python API. For a live dashboard, use a Python web-service host that supports the `requirements.txt` dependencies, configure the start command as `python main.py` with `HOST=0.0.0.0`, and provide the CSV at `data/TCS.NS_daily.csv`. TensorFlow and model fitting require more memory and startup time than a static site, so confirm the host's resource limits before enabling public traffic.
 
-GitHub stores the source; it does not run this Python API. For a live dashboard, use a Python web-service host that supports the `requirements.txt` dependencies, configure the start command as `python main.py`, and provide the CSV at `data/TCS.NS_daily.csv`. TensorFlow and model fitting require more memory and startup time than a static site, so confirm the host's resource limits before enabling public traffic.
+## Technologies
+
+Python, ARIMA, XGBoost, LSTM, GARCH, NumPy, pandas, scikit-learn, statsmodels, TensorFlow, and Matplotlib.
+
+## Author
+
+Ayush Mishra
+
