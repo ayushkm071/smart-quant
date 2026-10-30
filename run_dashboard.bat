@@ -17,6 +17,13 @@ if not exist ".venv\.smart_quant_deps_installed" (
     type nul > ".venv\.smart_quant_deps_installed"
 )
 
+".venv\Scripts\python.exe" -c "import tensorflow" >nul 2>&1
+if errorlevel 1 (
+    echo Installing missing Smart-Quant dependencies...
+    ".venv\Scripts\python.exe" -m pip install -r requirements.txt --timeout 120 --retries 10
+    if errorlevel 1 goto install_error
+    type nul > ".venv\.smart_quant_deps_installed"
+)
 echo Starting Smart-Quant. Keep this window open while using the dashboard.
 ".venv\Scripts\python.exe" -m streamlit run main.py
 goto end
